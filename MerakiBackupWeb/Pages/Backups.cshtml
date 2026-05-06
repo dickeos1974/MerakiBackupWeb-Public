@@ -1,0 +1,43 @@
+﻿@page
+@model BackupsModel
+
+<h1>Backup History</h1>
+
+<p>
+    <a href="/">Back to Backup</a>
+</p>
+
+@if (!Model.BackupFolders.Any())
+{
+    <p>No backups found.</p>
+}
+else
+{
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Backup Folder</th>
+                <th>Created</th>
+                <th>Files</th>
+                <th>Path</th>
+                <th>Download</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var backup in Model.BackupFolders)
+            {
+                <tr>
+                    <td>@backup.Name</td>
+                    <td>@backup.Created</td>
+                    <td>@backup.FileCount</td>
+                    <td><code>@backup.FullPath</code></td>
+                    <td>
+                        <form method="post" asp-page-handler="DownloadZip" asp-route-path="@backup.FullPath">
+                            <button type="submit">Download ZIP</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

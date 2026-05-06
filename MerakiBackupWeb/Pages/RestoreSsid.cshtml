@@ -1,0 +1,121 @@
+﻿@page
+@model MerakiBackupWeb.Pages.RestoreSsidModel
+
+<h1>Restore SSID</h1>
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <p style="color:green; font-weight:bold;">@Model.StatusMessage</p>
+}
+<p>
+    <a href="/">Back to Backup</a> |
+    <a href="/Backups">Backup History</a>
+</p>
+
+<form method="get">
+    <label>Select backup:</label>
+    <select name="SelectedBackup" onchange="this.form.submit()">
+        <option value="">-- Select backup --</option>
+
+        @foreach (var backup in Model.BackupFolders)
+        {
+            <option value="@backup" selected="@(backup == Model.SelectedBackup)">
+                @backup
+            </option>
+        }
+    </select>
+
+    @if (!string.IsNullOrWhiteSpace(Model.SelectedBackup))
+    {
+        <br />
+        <br />
+
+        <label>Select SSID file:</label>
+        <select name="SelectedFile" onchange="this.form.submit()">
+            <option value="">-- Select SSID file --</option>
+
+            @foreach (var file in Model.SsidFiles)
+            {
+                <option value="@file" selected="@(file == Model.SelectedFile)">
+                    @file
+                </option>
+            }
+        </select>
+
+        <input type="hidden" name="SelectedBackup" value="@Model.SelectedBackup" />
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.SelectedFile))
+    {
+        <br />
+        <br />
+
+        <label>Select target network:</label>
+        <select name="SelectedNetworkId" onchange="this.form.submit()">
+            <option value="">-- Select network --</option>
+
+            @foreach (var net in Model.Networks)
+            {
+                var id = net["id"]?.ToString();
+                var name = net["name"]?.ToString();
+
+                <option value="@id" selected="@(id == Model.SelectedNetworkId)">
+                    @name
+                </option>
+            }
+        </select>
+
+        <input type="hidden" name="SelectedFile" value="@Model.SelectedFile" />
+    }
+
+</form>
+
+@if (Model.Ssids.Any())
+{
+    <h2>SSID Preview</h2>
+    <br />
+  
+
+
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Name</th>
+                <th>Enabled</th>
+                <th>Auth Mode</th>
+                <th>Encryption</th>
+                <th>Visible</th>
+                <th>Restore</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ssid in Model.Ssids)
+            {
+                <tr>
+                    <td>@GetValue(ssid, "number")</td>
+                    <td>@GetValue(ssid, "name")</td>
+                    <td>@GetValue(ssid, "enabled")</td>
+                    <td>@GetValue(ssid, "authMode")</td>
+                    <td>@GetValue(ssid, "encryptionMode")</td>
+                    <td>@GetValue(ssid, "visible")</td>
+                    <td>
+                        <form method="post" asp-page-handler="Restore">
+                            <input type="hidden" name="SelectedBackup" value="@Model.SelectedBackup" />
+                            <input type="hidden" name="SelectedFile" value="@Model.SelectedFile" />
+                            <input type="hidden" name="SsidNumber" value="@GetValue(ssid, "number")" />
+                            <input type="hidden" name="SelectedNetworkId" value="@Model.SelectedNetworkId" />
+
+                            <button type="submit">Restore</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@functions {
+    private static string GetValue(Dictionary<string, object> item, string key)
+    {
+        return item.TryGetValue(key, out var value) ? value?.ToString() ?? "" : "";
+    }
+}

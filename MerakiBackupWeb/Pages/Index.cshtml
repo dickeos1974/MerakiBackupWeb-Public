@@ -1,0 +1,61 @@
+﻿@page
+@model IndexModel
+
+<div class="hero">
+    <h1>Meraki Backup & Restore</h1>
+    <p>Internal toolkit for backing up and selectively restoring Meraki configuration.</p>
+
+    <form method="post" onsubmit="showProgress()">
+        <button id="backupButton" class="primary-button" type="submit">
+            Run Backup
+        </button>
+    </form>
+
+    <div id="progressArea" style="display:none; margin-top:20px;">
+        <p>Backup running...</p>
+        <div id="liveStatus" style="font-weight:bold;"></div>
+    </div>
+
+    <p>@Model.StatusMessage</p>
+</div>
+
+<div class="card-grid">
+    <a class="card" href="/Backups">
+        <h2>Backup History</h2>
+        <p>View previous backups and download ZIP archives.</p>
+    </a>
+
+    <a class="card" href="/RestoreSsid">
+        <h2>Restore SSIDs</h2>
+        <p>Restore selected wireless SSID configuration.</p>
+    </a>
+
+    <a class="card" href="/RestoreVlan">
+        <h2>Restore VLANs</h2>
+        <p>Create or update VLAN configuration safely.</p>
+    </a>
+
+    <a class="card" href="/RestoreFirewall">
+        <h2>Restore Firewall</h2>
+        <p>Restore L3 firewall rules with confirmation controls.</p>
+    </a>
+
+    <a class="card" href="/RestoreSwitchPort">
+        <h2>Restore Switch Ports</h2>
+        <p>Restore individual switch port configuration.</p>
+    </a>
+</div>
+
+<script>
+    function showProgress() {
+        document.getElementById("progressArea").style.display = "block";
+        document.getElementById("backupButton").disabled = true;
+        document.getElementById("backupButton").innerText = "Backup running...";
+
+        setInterval(async () => {
+            const res = await fetch('?handler=Progress');
+            const data = await res.json();
+            document.getElementById("liveStatus").innerText = data.status;
+        }, 1000);
+    }
+</script>

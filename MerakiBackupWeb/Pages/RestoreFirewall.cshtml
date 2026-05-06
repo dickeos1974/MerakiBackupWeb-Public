@@ -1,0 +1,159 @@
+﻿@page
+@model MerakiBackupWeb.Pages.RestoreFirewallModel
+
+<h1>Restore Firewall Rules</h1>
+
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px 12px;
+        vertical-align: middle;
+    }
+
+    button {
+        padding: 4px 10px;
+    }
+</style>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <p style="color:green; font-weight:bold;">@Model.StatusMessage</p>
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.PreviewMessage))
+{
+    <p style="color:darkorange; font-weight:bold;">@Model.PreviewMessage</p>
+}
+
+<p>
+    <a href="/">Back to Backup</a> |
+    <a href="/Backups">Backup History</a> |
+    <a href="/RestoreSsid">Restore SSID</a> |
+    <a href="/RestoreVlan">Restore VLAN</a>
+</p>
+
+<form method="get">
+    <label>Select backup:</label>
+    <select name="SelectedBackup" onchange="this.form.submit()">
+        <option value="">-- Select backup --</option>
+
+        @foreach (var backup in Model.BackupFolders)
+        {
+            <option value="@backup" selected="@(backup == Model.SelectedBackup)">
+                @backup
+            </option>
+        }
+    </select>
+
+    @if (!string.IsNullOrWhiteSpace(Model.SelectedBackup))
+    {
+        <br />
+        <br />
+
+        <label>Select firewall file:</label>
+        <select name="SelectedFile" onchange="this.form.submit()">
+            <option value="">-- Select firewall file --</option>
+
+            @foreach (var file in Model.FirewallFiles)
+            {
+                <option value="@file" selected="@(file == Model.SelectedFile)">
+                    @file
+                </option>
+            }
+        </select>
+
+        <input type="hidden" name="SelectedBackup" value="@Model.SelectedBackup" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.SelectedFile))
+    {
+        <br />
+        <br />
+
+        <label>Select target network:</label>
+        <select name="SelectedNetworkId" onchange="this.form.submit()">
+            <option value="">-- Select network --</option>
+
+            @foreach (var net in Model.Networks)
+            {
+                var id = net["id"]?.ToString();
+                var name = net["name"]?.ToString();
+
+                <option value="@id" selected="@(id == Model.SelectedNetworkId)">
+                    @name
+                </option>
+            }
+        </select>
+
+        <input type="hidden" name="SelectedBackup" value="@Model.SelectedBackup" />
+        <input type="hidden" name="SelectedFile" value="@Model.SelectedFile" />
+    }
+</form>
+
+@if (Model.Rules.Any())
+{
+    <h2>Firewall Rule Preview</h2>
+
+    <p>
+        Rules in backup: <strong>@Model.Rules.Count</strong>
+    </p>
+    <p style="color:darkorange;">
+        This will overwrite all firewall rules on the selected network.
+    </p>
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Comment</th>
+                <th>Policy</th>
+                <th>Protocol</th>
+                <th>Source</th>
+                <th>Source Port</th>
+                <th>Destination</th>
+                <th>Destination Port</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rule in Model.Rules)
+            {
+                <tr>
+                    <td>@GetValue(rule, "comment")</td>
+                    <td>@GetValue(rule, "policy")</td>
+                    <td>@GetValue(rule, "protocol")</td>
+                    <td>@GetValue(rule, "srcCidr")</td>
+                    <td>@GetValue(rule, "srcPort")</td>
+                    <td>@GetValue(rule, "destCidr")</td>
+                    <td>@GetValue(rule, "destPort")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.Rules.Any())
+    {
+        <br />
+
+        <form method="post" asp-page-handler="Restore" style="display:flex; gap:10px; align-items:center;">
+            <input type="hidden" name="SelectedBackup" value="@Model.SelectedBackup" />
+            <input type="hidden" name="SelectedFile" value="@Model.SelectedFile" />
+            <input type="hidden" name="SelectedNetworkId" value="@Model.SelectedNetworkId" />
+
+            <label style="color:red; font-weight:bold;">
+                <input type="checkbox" name="ConfirmRestore" value="true" />
+                Confirm full overwrite (this replaces ALL firewall rules)
+            </label>
+
+            <button type="submit" @(string.IsNullOrWhiteSpace(Model.SelectedNetworkId) ? "disabled" : "")>
+                Restore Firewall Rules
+            </button>
+        </form>
+    }
+}
+
+@functions {
+    private static string GetValue(Dictionary<string, object> item, string key)
+    {
+        return item.TryGetValue(key, out var value) ? value?.ToString() ?? "" : "";
+    }
+}

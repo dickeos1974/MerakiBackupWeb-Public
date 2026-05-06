@@ -1,0 +1,143 @@
+﻿@page
+@model MerakiBackupWeb.Pages.RestoreSwitchPortModel
+
+<h1>Restore Switch Ports</h1>
+
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px 12px;
+        vertical-align: middle;
+    }
+
+    button {
+        padding: 4px 10px;
+    }
+</style>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <p style="color:green; font-weight:bold;">@Model.StatusMessage</p>
+}
+
+<p>
+    <a href="/">Back to Backup</a> |
+    <a href="/Backups">Backup History</a> |
+    <a href="/RestoreSsid">Restore SSID</a> |
+    <a href="/RestoreVlan">Restore VLAN</a> |
+    <a href="/RestoreFirewall">Restore Firewall</a>
+</p>
+
+<form method="get">
+    <label>Select switch:</label>
+    <select name="SelectedSerial" onchange="this.form.submit()">
+        <option value="">-- Select switch --</option>
+
+        @foreach (var d in Model.Devices)
+        {
+            var serial = d["serial"]?.ToString();
+            var name = d["name"]?.ToString();
+
+            <option value="@serial" selected="@(serial == Model.SelectedSerial)">
+                @name (@serial)
+            </option>
+        }
+    </select>
+
+    <label>Select backup:</label>
+    <select name="SelectedBackup" onchange="this.form.submit()">
+        <option value="">-- Select backup --</option>
+
+        @foreach (var backup in Model.BackupFolders)
+        {
+            <option value="@backup" selected="@(backup == Model.SelectedBackup)">
+                @backup
+            </option>
+        }
+    </select>
+
+    @if (!string.IsNullOrWhiteSpace(Model.SelectedBackup))
+    {
+        <br />
+        <br />
+
+        <label>Select switch port file:</label>
+        <select name="SelectedFile" onchange="this.form.submit()">
+            <option value="">-- Select switch port file --</option>
+
+            @foreach (var file in Model.SwitchPortFiles)
+            {
+                <option value="@file" selected="@(file == Model.SelectedFile)">
+                    @file
+                </option>
+            }
+        </select>
+
+        <input type="hidden" name="SelectedBackup" value="@Model.SelectedBackup" />
+    }
+</form>
+
+@if (Model.Ports.Any())
+{
+    <h2>Switch Port Preview</h2>
+
+    <p>
+        Ports in backup: <strong>@Model.Ports.Count</strong>
+    </p>
+
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Port ID</th>
+                <th>Name</th>
+                <th>Enabled</th>
+                <th>Type</th>
+                <th>VLAN</th>
+                <th>Voice VLAN</th>
+                <th>Allowed VLANs</th>
+                <th>PoE</th>
+                <th>Restore</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var port in Model.Ports)
+            {
+                <tr>
+                    <td>@GetValue(port, "portId")</td>
+                    <td>@GetValue(port, "name")</td>
+                    <td>@GetValue(port, "enabled")</td>
+                    <td>@GetValue(port, "type")</td>
+                    <td>@GetValue(port, "vlan")</td>
+                    <td>@GetValue(port, "voiceVlan")</td>
+                    <td>@GetValue(port, "allowedVlans")</td>
+                    <td>@GetValue(port, "poeEnabled")</td>
+                    <td>
+                        <form method="post" asp-page-handler="Restore" style="display:flex; gap:8px;">
+                            <input type="hidden" name="SelectedBackup" value="@Model.SelectedBackup" />
+                            <input type="hidden" name="SelectedFile" value="@Model.SelectedFile" />
+                            <input type="hidden" name="SelectedSerial" value="@Model.SelectedSerial" />
+                            <input type="hidden" name="PortId" value="@GetValue(port, "portId")" />
+
+                            <label>
+                                <input type="checkbox" name="ConfirmRestore" value="true" />
+                                Confirm
+                            </label>
+
+                            <button type="submit">Restore</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@functions {
+    private static string GetValue(Dictionary<string, object> item, string key)
+    {
+        return item.TryGetValue(key, out var value) ? value?.ToString() ?? "" : "";
+    }
+}
