@@ -271,7 +271,7 @@ Check:
 
 📄 License
 
-Internal use only.
+MIT
 
 ⸻
 
