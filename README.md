@@ -2,6 +2,12 @@ Meraki Backup & Restore Tool
 
 Internal ASP.NET Core web application for automated Cisco Meraki configuration backups and controlled restores.
 
+One thing that surprised me when working with Cisco Meraki was the lack of a native way to properly back up or roll back configuration changes within the dashboard. While there are several excellent commercial products available that solve this problem, they often come with ongoing licensing costs.
+
+This project started as an attempt to build a lightweight alternative using the Meraki API. The application reads configuration data from a Meraki organisation, stores it locally, and allows individual configuration elements to be selectively restored when needed.
+
+I am not a professional software developer — just someone with enough knowledge to open Visual Studio and gradually build something functional. The application is provided as-is and the focus has been on functionality rather than polished design, but it has proven useful in real-world environments and I hope others may find value in it as well.
+
 ⸻
 
 🚀 Features
